@@ -1,0 +1,9 @@
+/dist/
+.cabal-sandbox
+/cabal.sandbox.config
+.stack-work/
+
+/data
+
+.idea
+vertica-query-analyser.iml

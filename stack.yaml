@@ -1,0 +1,12 @@
+flags: {}
+packages:
+- .
+extra-deps:
+- fixed-list-0.1.6
+- predicate-class-0.1.0.1
+- git: https://github.com/uber/queryparser.git
+  commit: 4d8d9997e58b4318db445b870fca0c661520ae50
+  subdirs:
+  - .
+  - dialects/vertica
+resolver: lts-10.4

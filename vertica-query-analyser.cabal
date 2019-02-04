@@ -1,0 +1,69 @@
+cabal-version: 1.12
+
+name:           vertica-query-analyser
+version:        0.0.1.0
+description:    SQL analyser for Vertica
+homepage:       https://github.com/lukas-mi/vertica-query-analyser
+author:         Lukas Mikelionis
+maintainer:     Lukas Mikelionis
+copyright:      2019 Lukas Mikelionis
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/lukas-mi/vertica-query-analyser
+
+library
+  exposed-modules:
+      Analyser
+  other-modules:
+      Parsing
+    , Catalog
+    , Utils
+    , ErrorMsg
+    , AnalysisResult
+    , Paths_vertica_query_analyser
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , text >=1.2 && <1.3
+    , parsec >= 3.1 && < 3.2
+    , aeson >= 0.8
+    , aeson-pretty >= 0.8
+    , bytestring
+    , containers
+    , unordered-containers
+    , directory
+    , queryparser
+    , queryparser-vertica
+  default-language: Haskell2010
+
+executable vq-analyser
+  main-is: Main.hs
+  other-modules:
+      Paths_vertica_query_analyser
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , vertica-query-analyser
+  default-language: Haskell2010
+
+test-suite vertica-query-analyser-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_vertica_query_analyser
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , vertica-query-analyser
+  default-language: Haskell2010
