@@ -1,4 +1,4 @@
-# [vertica-query-analyser](https://github.com/lukas-mi/vertica-query-analyser)
+# [vertica-query-analyser](https://github.com/lukas-mi/vertica-query-analyser) [![CircleCI](https://circleci.com/gh/lukas-mi/vertica-query-analyser.svg?style=svg)](https://circleci.com/gh/lukas-mi/vertica-query-analyser)
 
 SQL analyser for Vertica. A wrapper of [uber/queryparser](https://github.com/uber/queryparser).
 
