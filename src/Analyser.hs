@@ -27,6 +27,7 @@ import            System.Directory
 
 import            Catalog
 import            AnalysisResult
+import            Utils
 import            ErrorMsg
 import            Utils
 

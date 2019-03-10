@@ -9,7 +9,6 @@ module Utils
   , getSchemaMember
   ) where
 
-
 import            Database.Sql.Type
 import            Database.Sql.Position
 import            Database.Sql.Vertica.Type (VerticaStatement(..))
