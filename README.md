@@ -10,6 +10,7 @@ Features:
     * Table lineage
 * Built in catalog usage
 * Simple json output
+* HTTP server mode
 
 Build:
 * `stack setup`
@@ -21,6 +22,14 @@ Docker:
 Usage:
 * `vq-analyser catalog_file [query_file]` - specify catalog file and optionally query file, if query file is not specified then stdin is used.
 * `vq-analyser catalog_file -d directory` - specify catalog file and directory in which all `*.sql` files will be analysed. Will create files after the original ones: `<original>.sql.json` on analysis success and `<original>.sql.txt` on failure.
+* `vq-analyser catalog_file -s -p port` - specify catalog file and port on which to run http server
+    * API
+        * `200` and `application/json` on success
+        * `400` and `text/plain` when input is incorrect (unparsable/unresolvable)
+        * `404` and `text/plain` when resource path is specified
+        * `405` and `text/plain` when not using `POST`
+        * `500` and `text/plain` on server internal error
+        * `503` and `text/plain` on server processing timeout
 
 Examples:
 
@@ -32,8 +41,9 @@ CREATE TABLE demo.bar AS SELECT * FROM demo.foo;
 ```
 
 Commands (pipes to [stedolan/jq](https://github.com/stedolan/jq) for formatting):
-* `vq-analyser catalog.sql queries.sql | jq '.'`
-* `docker run -i -v /host/path:/container/path lukasmi/vertica-query-analyser /container/path/catalog.sql /container/path/queries.sql | jq '.'`
+* Single file locally - `vq-analyser catalog.sql queries.sql | jq '.'`
+* Single file using docker - `docker run -i -v /host/path:/container/path lukasmi/vertica-query-analyser /container/path/catalog.sql /container/path/queries.sql | jq '.'`
+* Using http - `cat query.sql | curl 0.0.0.0:3000 --data-binary @- | jq '.'`
 
 1. Column resolving
     * `queries.sql`:
