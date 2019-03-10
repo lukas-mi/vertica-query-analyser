@@ -23,9 +23,9 @@ library
   other-modules:
       Parsing
     , Catalog
-    , Utils
     , ErrorMsg
     , AnalysisResult
+    , Utils
     , Paths_vertica_query_analyser
   hs-source-dirs:
       src
