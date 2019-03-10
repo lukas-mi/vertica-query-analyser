@@ -2,11 +2,11 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Analyser
-    ( runAnalysis
-    , runAnalysisOnDir
-    , getStmts
-    , getCatalog
-    ) where
+  ( runAnalysis
+  , runAnalysisOnDir
+  , getStmts
+  , getCatalog
+  ) where
 
 import            Database.Sql.Type
 import            Database.Sql.Position
@@ -25,11 +25,11 @@ import            System.IO (stdin, stderr, hPutStr)
 import            System.Exit (ExitCode (..))
 import            System.Directory
 
-import            Parsing
 import            Catalog
 import            AnalysisResult
 import            Utils
 import            ErrorMsg
+import            Utils
 
 
 runAnalysis :: FilePath -> Maybe FilePath -> IO ExitCode
