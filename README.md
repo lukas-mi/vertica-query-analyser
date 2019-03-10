@@ -32,7 +32,6 @@ Usage:
         * `503` and `text/plain` on server processing timeout
 
 Examples:
-
 `catalog.sql`:
 ```sql
 CREATE SCHEMA demo;
@@ -40,10 +39,13 @@ CREATE TABLE demo.foo (a INT, b INT);
 CREATE TABLE demo.bar AS SELECT * FROM demo.foo;
 ```
 
-Commands (pipes to [stedolan/jq](https://github.com/stedolan/jq) for formatting):
-* Single file locally - `vq-analyser catalog.sql queries.sql | jq '.'`
-* Single file using docker - `docker run -i -v /host/path:/container/path lukasmi/vertica-query-analyser /container/path/catalog.sql /container/path/queries.sql | jq '.'`
-* Using http - `cat query.sql | curl 0.0.0.0:3000 --data-binary @- | jq '.'`
+Commands (pipes to [stedolan/jq](https://github.com/stedolan/jq) to format the json):
+* Single file - `vq-analyser catalog.sql queries.sql | jq '.'`
+    * Using docker - `docker run -it -v /host/path:/container/path lukasmi/vertica-query-analyser /container/path/catalog.sql /container/path/queries.sql | jq '.'`
+* Using http server mode:
+    * Start the server - `vq-analyser catalog.sql -s -p 3000`
+        * Using docker - `docker run -it -p 3000:3000 -v /host/path:/container/path lukasmi/vertica-query-analyser /container/path/catalog.sql -s -p 3000`
+    * Issue POST - `cat queries.sql | curl localhost:3000 --data-binary @- | jq '.'`
 
 1. Column resolving
     * `queries.sql`:
