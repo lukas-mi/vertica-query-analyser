@@ -16,8 +16,10 @@ import            Data.List
 import            Data.Either
 import qualified  Data.ByteString.Lazy as BS
 import qualified  Data.Text.Lazy.Encoding as TE
-import qualified  Data.Text.Lazy as TL
-import            Data.Aeson.Encode.Pretty
+import            Data.ByteString.Lazy.Char8 (pack)
+import            Data.Aeson
+
+import            Control.Exception
 
 import            System.IO (stdin, stderr, hPutStr)
 import            System.Exit (ExitCode (..))
@@ -26,6 +28,7 @@ import            System.Directory
 import            Parsing
 import            Catalog
 import            AnalysisResult
+import            Utils
 import            ErrorMsg
 
 
@@ -44,12 +47,11 @@ runAnalysis catalogPath queryPath = do
       analysisResult = (analyse <$>) <$> stmts
 
   case analysisResult of
-    Right result -> do
-      BS.putStr (encodePretty' encodeConfig result)
-      return ExitSuccess
-    Left errorMsg -> do
-      BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
-      return (ExitFailure 1)
+    Right result ->
+      tryErrorCall (evaluate $ encode result) >>= \case
+        Right encoded -> const ExitSuccess <$> BS.putStr encoded
+        Left e -> const (ExitFailure 1) <$> BS.hPutStr stderr (pack $ "internal: \n" ++ show e)
+    Left errorMsg -> const (ExitFailure 1) <$> BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
 
 runAnalysisOnDir :: FilePath -> FilePath -> IO ExitCode
 runAnalysisOnDir catalogPath dirPath =
@@ -60,9 +62,7 @@ runAnalysisOnDir catalogPath dirPath =
       exitCodes <- sequence $ analyseAndWrite catalog <$> queryFilePaths
       putStrLn $ "analysed " ++ show (length exitCodes) ++ " files"
       return ExitSuccess
-    Left errorMsg -> do
-      BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
-      return (ExitFailure 1)
+    Left errorMsg -> const (ExitFailure 1) <$> BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
 
 analyseAndWrite :: Catalog -> FilePath -> IO ExitCode
 analyseAndWrite catalog queryPath = do
@@ -75,33 +75,20 @@ analyseAndWrite catalog queryPath = do
       analysisResult = (analyse <$>) <$> stmts
 
   case analysisResult of
-    Right result -> do
-      let newFilePath = queryPath ++ ".json"
-      BS.writeFile newFilePath (encodePretty' encodeConfig result)
-      return ExitSuccess
-    Left errorMsg -> do
-      let newFilePath = queryPath ++ ".txt"
-      BS.writeFile newFilePath (TE.encodeUtf8 errorMsg)
-      return (ExitFailure 1)
+    Right result ->
+      tryErrorCall (evaluate $ encode result) >>= \case
+        Right encoded -> createSuccessFile queryPath encoded
+        Left e -> createFailureFile queryPath . pack $ "internal: \n" ++ show e
+    Left errorMsg -> createFailureFile queryPath (TE.encodeUtf8 errorMsg)
 
-getCatalog :: BS.ByteString -> Either ErrorMsg Catalog
-getCatalog content =
-  case parse (TE.decodeUtf8 content) of
-    Right catalogStmts ->
-     case updateCatalogWStmts defaultCatalog catalogStmts of
-       Right (Right updatedCatalog) -> Right updatedCatalog
-       Right (Left schemaChangeErrors) -> Left . TL.unlines $ "applying schema changes: " : (schemaChangeErrorToMsg <$> schemaChangeErrors)
-       Left resolutionErrors -> Left . TL.unlines $ "resolving catalog: " : (resolutionErrorToMsg <$> resolutionErrors)
-    Left parseError -> Left $ TL.unlines ["parsing catalog: ", TL.pack $ show parseError]
+createSuccessFile :: FilePath -> BS.ByteString -> IO ExitCode
+createSuccessFile queryPath content = do
+  let newFilePath = queryPath ++ ".json"
+  BS.writeFile newFilePath content
+  return ExitSuccess
 
-getStmts :: Catalog -> BS.ByteString -> Either ErrorMsg [VerticaStatement ResolvedNames Range]
-getStmts catalog content =
-  case parse (TE.decodeUtf8 content) of
-    Right parsedStmts ->
-      case resolveMany catalog parsedStmts of
-        Right resolvedStmts -> Right resolvedStmts
-        Left resolutionErrors -> Left $ TL.unlines ("resolving queries: " : (resolutionErrorToMsg <$> resolutionErrors))
-    Left parseError -> Left $ TL.unlines ["parsing queries: ", TL.pack $ show parseError]
-
-encodeConfig :: Config
-encodeConfig = defConfig { confIndent = Spaces 2, confTrailingNewline = True }
+createFailureFile :: FilePath -> BS.ByteString -> IO ExitCode
+createFailureFile queryPath content = do
+  let newFilePath = queryPath ++ ".txt"
+  BS.writeFile newFilePath content
+  return (ExitFailure 1)

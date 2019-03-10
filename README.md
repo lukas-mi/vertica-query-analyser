@@ -6,7 +6,7 @@ Features:
 * Provides the following information (check out [uber/queryparser](https://github.com/uber/queryparser]) for more detail):
     * What columns were accessed and in what clauses (`SORT`, `GROUP`, etc.)
     * What are the join columns (`JOIN ON`)
-    * What table were accessed
+    * What tables were accessed
     * Table lineage
 * Built in catalog usage
 * Simple json output
@@ -30,7 +30,11 @@ CREATE SCHEMA demo;
 CREATE TABLE demo.foo (a INT, b INT);
 CREATE TABLE demo.bar AS SELECT * FROM demo.foo;
 ```
-Command: `vq-analyser catalog.sql queries.sql` or `docker run -i -v /host/path:/container/path /container/path/catalog.sql /container/path/queries.sql`
+
+Commands (pipes to [stedolan/jq](https://github.com/stedolan/jq) for formatting):
+* `vq-analyser catalog.sql queries.sql | jq '.'`
+* `docker run -i -v /host/path:/container/path lukasmi/vertica-query-analyser /container/path/catalog.sql /container/path/queries.sql | jq '.'`
+
 1. Column resolving
     * `queries.sql`:
     ```sql
