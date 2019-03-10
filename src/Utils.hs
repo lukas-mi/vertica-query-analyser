@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Utils
-    ( tryErrorCall
-    , getCatalog
-    , getStmts
-    , getTableColumns
-    , getViewQuery
-    , getSchemaMember
-    ) where
+  ( tryErrorCall
+  , getCatalog
+  , getStmts
+  , getTableColumns
+  , getViewQuery
+  , getSchemaMember
+  ) where
 
 
 import            Database.Sql.Type
