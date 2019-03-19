@@ -55,11 +55,10 @@ application catalog req respond = do
 
 runServer :: FilePath -> Int -> IO ExitCode
 runServer catalogPath port = do
+  emptyCatalog <- createEmptyCatalogUsingEnv
   catalogContent <- BS.readFile catalogPath
-  let catalogE :: Either ErrorMsg Catalog
-      catalogE = getCatalog catalogContent
 
-  case catalogE of
+  case getCatalog emptyCatalog catalogContent of
     Right catalog -> do
       putStrLn $ "Serving HTTP on port " ++ show port
       run port (withMiddleware $ application catalog)
