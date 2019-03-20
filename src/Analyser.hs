@@ -27,18 +27,18 @@ import            System.Directory
 
 import            Catalog
 import            AnalysisResult
-import            Utils
 import            ErrorMsg
 import            Utils
 
 
 runAnalysis :: FilePath -> Maybe FilePath -> IO ExitCode
 runAnalysis catalogPath queryPath = do
+  emptyCatalog <- createEmptyCatalogUsingEnv
   catalogContent <- BS.readFile catalogPath
   queriesContent <- maybe (BS.hGetContents stdin) BS.readFile queryPath
 
   let catalog :: Either ErrorMsg Catalog
-      catalog = getCatalog catalogContent
+      catalog = getCatalog emptyCatalog catalogContent
 
       stmts :: Either ErrorMsg [VerticaStatement ResolvedNames Range]
       stmts = catalog >>= flip getStmts queriesContent
@@ -54,8 +54,11 @@ runAnalysis catalogPath queryPath = do
     Left errorMsg -> const (ExitFailure 1) <$> BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
 
 runAnalysisOnDir :: FilePath -> FilePath -> IO ExitCode
-runAnalysisOnDir catalogPath dirPath =
-  getCatalog <$> BS.readFile catalogPath >>= \case
+runAnalysisOnDir catalogPath dirPath = do
+  emptyCatalog <- createEmptyCatalogUsingEnv
+  catalogContent <- BS.readFile catalogPath
+
+  case getCatalog emptyCatalog catalogContent of
     Right catalog -> do
       queryFileNames <- filter (isSuffixOf ".sql") <$> listDirectory dirPath
       let queryFilePaths = (\fn -> dirPath ++ "/" ++ fn) <$> queryFileNames

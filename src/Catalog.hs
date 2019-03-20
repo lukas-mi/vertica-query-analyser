@@ -2,8 +2,8 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Catalog
-  ( createCatalog
-  , defaultCatalog
+  ( createEmptyCatalog
+  , defaultEmptyCatalog
   , updateCatalogWStmt
   , updateCatalogWStmts
   ) where
@@ -18,14 +18,14 @@ import qualified  Data.HashMap.Strict as HMS
 import            Parsing
 
 
-createCatalog :: DatabaseName () -> Catalog
-createCatalog databaseName =
+createEmptyCatalog :: CurrentDatabase -> Path -> Catalog
+createEmptyCatalog db path =
   let catalogMap :: CatalogMap
-      catalogMap = HMS.singleton databaseName HMS.empty
-  in makeDefaultingCatalog catalogMap [] databaseName
+      catalogMap = HMS.singleton db HMS.empty
+  in makeDefaultingCatalog catalogMap path db
 
-defaultCatalog :: Catalog
-defaultCatalog = createCatalog (DatabaseName () "")
+defaultEmptyCatalog :: Catalog
+defaultEmptyCatalog = createEmptyCatalog (DatabaseName () "") []
 
 updateCatalogWStmt :: Catalog -> VerticaStatement RawNames a -> Either [ResolutionError a] (Either [S.SchemaChangeError] Catalog)
 updateCatalogWStmt catalog stmt = applySchemaChanges catalog . S.getSchemaChange <$> resolve catalog stmt

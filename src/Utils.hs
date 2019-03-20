@@ -2,6 +2,7 @@
 
 module Utils
   ( tryErrorCall
+  , createEmptyCatalogUsingEnv
   , getCatalog
   , getStmts
   , getTableColumns
@@ -15,10 +16,13 @@ import            Database.Sql.Vertica.Type (VerticaStatement(..))
 
 import            Data.Functor.Identity
 import            Data.Either
+import            Data.Maybe
 import qualified  Data.HashMap.Strict as HMS
 import qualified  Data.ByteString.Lazy as BS
 import qualified  Data.Text.Lazy.Encoding as TE
 import qualified  Data.Text.Lazy as TL
+
+import            System.Environment
 
 import            Control.Exception
 
@@ -30,11 +34,23 @@ import            ErrorMsg
 tryErrorCall :: IO a -> IO (Either ErrorCall a)
 tryErrorCall = try
 
-getCatalog :: BS.ByteString -> Either ErrorMsg Catalog
-getCatalog content =
+createEmptyCatalogUsingEnv :: IO Catalog
+createEmptyCatalogUsingEnv = do
+  dbName <- fromMaybe "" <$> lookupEnv "VQ_ANALYSER_VERTICA_DB"
+  csSchemaNames <- fromMaybe "" <$> lookupEnv "VQ_ANALYSER_PATH"
+
+  let db :: CurrentDatabase
+      db = DatabaseName () (TL.pack dbName)
+      path :: Path
+      path = flip mkNormalSchema () <$> (TL.splitOn "," . TL.pack) csSchemaNames
+
+  return (createEmptyCatalog db path)
+
+getCatalog :: Catalog -> BS.ByteString -> Either ErrorMsg Catalog
+getCatalog oldCatalog content =
   case parse (TE.decodeUtf8 content) of
     Right catalogStmts ->
-     case updateCatalogWStmts defaultCatalog catalogStmts of
+     case updateCatalogWStmts oldCatalog catalogStmts of
        Right (Right updatedCatalog) -> Right updatedCatalog
        Right (Left schemaChangeErrors) -> Left . TL.unlines $ "applying schema changes: " : (schemaChangeErrorToMsg <$> schemaChangeErrors)
        Left resolutionErrors -> Left . TL.unlines $ "resolving catalog: " : (resolutionErrorToMsg <$> resolutionErrors)
