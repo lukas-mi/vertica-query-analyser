@@ -3,7 +3,7 @@
 SQL analyser for Vertica. A wrapper of [uber/queryparser](https://github.com/uber/queryparser).
 
 Features:
-* Provides the following information (check out [uber/queryparser](https://github.com/uber/queryparser]) for more detail):
+* Provides the following information (check out [uber/queryparser](https://github.com/uber/queryparser) for more detail):
     * What columns were accessed and in what clauses (`SORT`, `GROUP`, etc.)
     * What are the join columns (`JOIN ON`)
     * What tables were accessed
