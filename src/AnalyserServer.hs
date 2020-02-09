@@ -37,11 +37,11 @@ withMiddleware :: Middleware
 withMiddleware app = logStdout $ gzip def $ requestFilters $ timeout defaultTimeout app
 
 application :: Catalog -> Application
-application catalog req respond = do
-  reqBody <- requestBody req
+application catalog request respond = do
+  body <- strictRequestBody request
 
   let stmts :: Either ErrorMsg [VerticaStatement ResolvedNames Range]
-      stmts = getStmts catalog . BS.fromStrict $ reqBody
+      stmts = getStmts catalog body
 
       analysisResult :: Either ErrorMsg [AnalysisResult]
       analysisResult = (analyse <$>) <$> stmts
@@ -63,4 +63,4 @@ runServer catalogPath port = do
       putStrLn $ "Serving HTTP on port " ++ show port
       run port (withMiddleware $ application catalog)
       return ExitSuccess
-    Left errMsg -> const (ExitFailure 1) <$> BS.hPutStr stderr (TE.encodeUtf8 errMsg)
+    Left errMsg -> ExitFailure 1 <$ BS.hPutStr stderr (TE.encodeUtf8 errMsg)
