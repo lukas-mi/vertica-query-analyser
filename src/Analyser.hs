@@ -49,9 +49,9 @@ runAnalysis catalogPath queryPath = do
   case analysisResult of
     Right result ->
       tryErrorCall (evaluate $ encode result) >>= \case
-        Right encoded -> const ExitSuccess <$> BS.putStr encoded
-        Left e -> const (ExitFailure 1) <$> BS.hPutStr stderr (pack $ "internal: \n" ++ show e)
-    Left errorMsg -> const (ExitFailure 1) <$> BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
+        Right encoded -> ExitSuccess <$ BS.putStr encoded
+        Left e -> ExitFailure 1 <$ BS.hPutStr stderr (pack $ "internal: \n" ++ show e)
+    Left errorMsg -> ExitFailure 1 <$ BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
 
 runAnalysisOnDir :: FilePath -> FilePath -> IO ExitCode
 runAnalysisOnDir catalogPath dirPath = do
@@ -65,7 +65,7 @@ runAnalysisOnDir catalogPath dirPath = do
       exitCodes <- sequence $ analyseAndWrite catalog <$> queryFilePaths
       putStrLn $ "analysed " ++ show (length exitCodes) ++ " files"
       return ExitSuccess
-    Left errorMsg -> const (ExitFailure 1) <$> BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
+    Left errorMsg -> ExitFailure 1 <$ BS.hPutStr stderr (TE.encodeUtf8 errorMsg)
 
 analyseAndWrite :: Catalog -> FilePath -> IO ExitCode
 analyseAndWrite catalog queryPath = do
